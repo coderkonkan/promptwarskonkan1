@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stadium Wayfind | Full Map & Seat Finder</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="search-container">
+            <i class="fas fa-search"></i>
+            <input type="text" id="seat-search" placeholder="Search Seat (e.g. 101, 204)..." autocomplete="off">
+            <div id="search-results" class="search-results"></div>
+        </div>
+    </header>
+
+    <div id="suggestion-banner" class="suggestion">
+        <i class="fas fa-info-circle"></i>
+        <span id="suggestion-text"></span>
+    </div>
+
+    <main id="map-container">
+        <div class="zoom-controls">
+            <button id="zoom-in"><i class="fas fa-plus"></i></button>
+            <button id="zoom-out"><i class="fas fa-minus"></i></button>
+            <button id="zoom-reset"><i class="fas fa-expand"></i></button>
+        </div>
+
+        <svg id="stadium-map" viewBox="0 0 600 600">
+            <!-- Background Layer -->
+            <rect width="600" height="600" fill="transparent" />
+            
+            <!-- Stadium Shell -->
+            <ellipse cx="300" cy="300" rx="280" ry="280" class="stadium-outline" />
+            
+            <!-- Pitch/Field -->
+            <rect x="220" y="240" width="160" height="120" rx="10" class="stadium-pitch" />
+            <circle cx="300" cy="300" r="20" class="pitch-center-circle" />
+
+            <!-- Edges (Static) -->
+            <g id="edges-layer"></g>
+            
+            <!-- Active Route -->
+            <path id="route-path" class="route-path" d="" />
+            
+            <!-- Nodes -->
+            <g id="nodes-layer"></g>
+
+            <!-- Labels -->
+            <g id="labels-layer"></g>
+        </svg>
+
+        <div class="map-hint">Drag to Pan • Scroll to Zoom</div>
+    </main>
+
+    <div id="nav-panel">
+        <div class="controls">
+            <div class="stat">
+                <span class="stat-label">Your Location</span>
+                <select id="source-select">
+                    <!-- Populated by JS -->
+                </select>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Destination</span>
+                <select id="dest-select">
+                    <!-- Populated by JS -->
+                </select>
+            </div>
+        </div>
+
+        <div class="route-info">
+            <div class="stat">
+                <span class="stat-label">Estimated Time</span>
+                <span id="eta-val" class="stat-value">-- min</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Congestion</span>
+                <span id="congestion-val" class="stat-value">
+                    <span class="indicator"></span> --
+                </span>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button id="find-route-btn">GET DIRECTIONS</button>
+            <button id="emergency-btn" class="emergency">EMERGENCY EXIT</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

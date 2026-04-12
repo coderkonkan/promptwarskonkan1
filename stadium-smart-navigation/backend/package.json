@@ -1,0 +1,13 @@
+{
+  "name": "stadium-navigator-backend",
+  "version": "1.0.0",
+  "description": "Smart Stadium Navigation Backend",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^4.22.1"
+  }
+}
