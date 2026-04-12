@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stadium Crowd Density Monitor</title>
+    <!-- Use Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="header-content">
+                <h1>Stadium Crowd Density Monitor</h1>
+                <p>Live sensor data tracking and zone estimation</p>
+            </div>
+            <div class="live-indicator">
+                <div class="pulse-dot"></div>
+                <span>LIVE</span>
+            </div>
+        </header>
+
+        <main class="dashboard-grid">
+            <!-- Left panel: Raw Data Feed -->
+            <aside class="data-panel">
+                <h2>Live Feed (/crowd-data)</h2>
+                <div class="feed-container" id="feed-container">
+                    <!-- Feed items injected via JS -->
+                </div>
+            </aside>
+
+            <!-- Right panel: Visual Stadium Map -->
+            <section class="map-panel">
+                <h2>Interactive Map</h2>
+                <div class="stadium-map">
+                    <!-- The pitch/field in the center -->
+                    <div class="pitch">
+                        <div class="center-circle"></div>
+                        <div class="penalty-box top"></div>
+                        <div class="penalty-box bottom"></div>
+                        <span class="pitch-label">FIELD</span>
+                    </div>
+
+                    <!-- Zones positioned via CSS Grid/Absolute -->
+                    <div class="zone" id="zone-seating-area-1" data-zone="Seating Area 1">
+                        <span class="zone-name">Seating Area 1</span>
+                        <div class="density-bar"><div class="fill"></div></div>
+                        <span class="density-value">0%</span>
+                    </div>
+                    <div class="zone" id="zone-seating-area-2" data-zone="Seating Area 2">
+                        <span class="zone-name">Seating Area 2</span>
+                        <div class="density-bar"><div class="fill"></div></div>
+                        <span class="density-value">0%</span>
+                    </div>
+                    
+                    <div class="zone side-zone" id="zone-food-court" data-zone="Food Court">
+                        <span class="zone-name">Food Court</span>
+                        <div class="density-bar"><div class="fill"></div></div>
+                        <span class="density-value">0%</span>
+                    </div>
+                    <div class="zone side-zone" id="zone-washrooms" data-zone="Washrooms">
+                        <span class="zone-name">Washrooms</span>
+                        <div class="density-bar"><div class="fill"></div></div>
+                        <span class="density-value">0%</span>
+                    </div>
+
+                    <div class="gate-area">
+                        <div class="zone gate" id="zone-gate-a" data-zone="Gate A">
+                            <span class="zone-name">Gate A</span>
+                            <div class="density-bar"><div class="fill"></div></div>
+                            <span class="density-value">0%</span>
+                        </div>
+                        <div class="zone gate" id="zone-gate-b" data-zone="Gate B">
+                            <span class="zone-name">Gate B</span>
+                            <div class="density-bar"><div class="fill"></div></div>
+                            <span class="density-value">0%</span>
+                        </div>
+                        <div class="zone gate" id="zone-gate-c" data-zone="Gate C">
+                            <span class="zone-name">Gate C</span>
+                            <div class="density-bar"><div class="fill"></div></div>
+                            <span class="density-value">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Script tags at bottom -->
+    <script src="app.js"></script>
+</body>
+</html>
