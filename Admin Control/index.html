@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Venue — Admin Control Dashboard</title>
+  <meta name="description" content="Real-time Admin Command Center for the Smart Venue Experience System. Monitor crowd, queues, alerts, AI decisions, and system health." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- ════════════════════ SIDEBAR NAV ════════════════════ -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">⬡</div>
+    <div class="logo-text">
+      <span class="logo-title">SVES</span>
+      <span class="logo-sub">Admin Control</span>
+    </div>
+  </div>
+
+  <ul class="nav-menu">
+    <li class="nav-item active" data-panel="overview" id="nav-overview">
+      <span class="nav-icon">◈</span><span class="nav-label">Overview</span>
+    </li>
+    <li class="nav-item" data-panel="crowd" id="nav-crowd">
+      <span class="nav-icon">⬡</span><span class="nav-label">Crowd Monitor</span>
+    </li>
+    <li class="nav-item" data-panel="queue" id="nav-queue">
+      <span class="nav-icon">≡</span><span class="nav-label">Queue Analytics</span>
+    </li>
+    <li class="nav-item" data-panel="alerts" id="nav-alerts">
+      <span class="nav-icon">⚠</span><span class="nav-label">Alerts & Incidents</span>
+      <span class="nav-badge" id="alert-badge">3</span>
+    </li>
+    <li class="nav-item" data-panel="ai" id="nav-ai">
+      <span class="nav-icon">◎</span><span class="nav-label">AI Insights</span>
+    </li>
+    <li class="nav-item" data-panel="control" id="nav-control">
+      <span class="nav-icon">⊞</span><span class="nav-label">Control Actions</span>
+    </li>
+    <li class="nav-item" data-panel="drone" id="nav-drone">
+      <span class="nav-icon">◉</span><span class="nav-label">Drone & Camera</span>
+    </li>
+    <li class="nav-item" data-panel="twin" id="nav-twin">
+      <span class="nav-icon">⧫</span><span class="nav-label">Digital Twin</span>
+    </li>
+    <li class="nav-item" data-panel="timeline" id="nav-timeline">
+      <span class="nav-icon">⊟</span><span class="nav-label">Event Timeline</span>
+    </li>
+    <li class="nav-item" data-panel="metrics" id="nav-metrics">
+      <span class="nav-icon">▦</span><span class="nav-label">Performance</span>
+    </li>
+    <li class="nav-item" data-panel="stress" id="nav-stress">
+      <span class="nav-icon">⚡</span><span class="nav-label">Stress Test</span>
+    </li>
+  </ul>
+
+  <div class="sidebar-footer">
+    <div class="admin-chip">
+      <div class="admin-avatar">A</div>
+      <div>
+        <div class="admin-name">Admin</div>
+        <div class="admin-role">Super Admin</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ════════════════════ TOP BAR ════════════════════ -->
+<header class="topbar">
+  <button class="menu-toggle" id="menuToggle" aria-label="Toggle Menu">☰</button>
+  <div class="topbar-title" id="panel-title">Dashboard Overview</div>
+
+  <div class="status-pills">
+    <div class="status-pill attendees">
+      <span class="pill-icon">👥</span>
+      <div>
+        <div class="pill-label">Attendees</div>
+        <div class="pill-value" id="stat-attendees">42,857</div>
+      </div>
+    </div>
+    <div class="status-pill alerts-pill">
+      <span class="pill-icon">⚠</span>
+      <div>
+        <div class="pill-label">Active Alerts</div>
+        <div class="pill-value" id="stat-alerts">3</div>
+      </div>
+    </div>
+    <div class="status-pill health">
+      <span class="pill-icon health-dot" id="health-dot">●</span>
+      <div>
+        <div class="pill-label">System Health</div>
+        <div class="pill-value" id="stat-health">LIVE</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="topbar-clock" id="topbar-clock">--:--:--</div>
+</header>
+
+<!-- ════════════════════ MAIN CONTENT ════════════════════ -->
+<main class="main-content" id="mainContent">
+
+  <!-- ── PANEL: OVERVIEW ── -->
+  <section class="panel active" id="panel-overview">
+    <div class="panel-grid overview-grid">
+
+      <!-- Mini KPI Row -->
+      <div class="kpi-row">
+        <div class="kpi-card" id="kpi-density">
+          <div class="kpi-icon">⬡</div>
+          <div class="kpi-body">
+            <div class="kpi-label">Avg Density</div>
+            <div class="kpi-value" id="kpi-density-val">68%</div>
+          </div>
+          <div class="kpi-sparkline"><canvas id="sparkDensity" width="80" height="30"></canvas></div>
+        </div>
+        <div class="kpi-card" id="kpi-wait">
+          <div class="kpi-icon">⏱</div>
+          <div class="kpi-body">
+            <div class="kpi-label">Avg Wait Time</div>
+            <div class="kpi-value" id="kpi-wait-val">4.2 min</div>
+          </div>
+          <div class="kpi-sparkline"><canvas id="sparkWait" width="80" height="30"></canvas></div>
+        </div>
+        <div class="kpi-card" id="kpi-response">
+          <div class="kpi-icon">⚡</div>
+          <div class="kpi-body">
+            <div class="kpi-label">Response Time</div>
+            <div class="kpi-value" id="kpi-response-val">142 ms</div>
+          </div>
+          <div class="kpi-sparkline"><canvas id="sparkResponse" width="80" height="30"></canvas></div>
+        </div>
+        <div class="kpi-card" id="kpi-satisfaction">
+          <div class="kpi-icon">★</div>
+          <div class="kpi-body">
+            <div class="kpi-label">Satisfaction</div>
+            <div class="kpi-value" id="kpi-satisfaction-val">87%</div>
+          </div>
+          <div class="kpi-sparkline"><canvas id="sparkSatisfaction" width="80" height="30"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Crowd Heatmap Quick View -->
+      <div class="card heatmap-card">
+        <div class="card-header">
+          <h2 class="card-title">Crowd Heatmap</h2>
+          <span class="live-pill">● LIVE</span>
+        </div>
+        <div class="stadium-map" id="overviewHeatmap">
+          <!-- Zones injected by JS -->
+        </div>
+        <div class="top3-list" id="top3Zones"></div>
+      </div>
+
+      <!-- Queue Status Quick View -->
+      <div class="card queue-card">
+        <div class="card-header">
+          <h2 class="card-title">Queue Status</h2>
+          <span class="live-pill">● LIVE</span>
+        </div>
+        <div class="queue-bars" id="overviewQueueBars"></div>
+      </div>
+
+      <!-- Network Load -->
+      <div class="card network-card">
+        <div class="card-header">
+          <h2 class="card-title">Network Load</h2>
+        </div>
+        <canvas id="networkChart" height="130"></canvas>
+      </div>
+
+      <!-- Parking -->
+      <div class="card parking-card">
+        <div class="card-header">
+          <h2 class="card-title">Parking Status</h2>
+        </div>
+        <div class="parking-grid" id="parkingGrid"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── PANEL: CROWD MONITOR ── -->
+  <section class="panel" id="panel-crowd">
+    <div class="panel-grid two-col">
+      <div class="card full-heatmap-card">
+        <div class="card-header">
+          <h2 class="card-title">Interactive Stadium Map</h2>
+          <span class="live-pill">● LIVE</span>
+        </div>
+        <div class="stadium-map large" id="fullHeatmap"></div>
+        <div class="legend-row">
+          <span class="legend-item"><span class="dot green"></span> Low (&lt;40%)</span>
+          <span class="legend-item"><span class="dot yellow"></span> Medium (40–74%)</span>
+          <span class="legend-item"><span class="dot orange"></span> High (75–89%)</span>
+          <span class="legend-item"><span class="dot red"></span> Critical (≥90%)</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Zone Details</h2>
+        </div>
+        <div class="zone-details-list" id="zoneDetailsList"></div>
+      </div>
+    </div>
+
+    <div class="card mt-16">
+      <div class="card-header">
+        <h2 class="card-title">Top 3 Congested Zones</h2>
+      </div>
+      <div class="top3-podium" id="top3Podium"></div>
+    </div>
+  </section>
+
+  <!-- ── PANEL: QUEUE ANALYTICS ── -->
+  <section class="panel" id="panel-queue">
+    <div class="panel-grid two-col">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Stall Queue Lengths</h2>
+          <span class="live-pill">● LIVE</span>
+        </div>
+        <canvas id="queueBarChart" height="220"></canvas>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Wait Time by Stall</h2>
+        </div>
+        <div class="stall-wait-list" id="stallWaitList"></div>
+      </div>
+    </div>
+    <div class="panel-grid two-col mt-16">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Queue vs Time</h2>
+        </div>
+        <canvas id="queueTimeChart" height="200"></canvas>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Demand Spikes (Event Phases)</h2>
+        </div>
+        <canvas id="demandSpikeChart" height="200"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PANEL: ALERTS ── -->
+  <section class="panel" id="panel-alerts">
+    <div class="panel-grid two-col">
+      <div class="card alerts-list-card">
+        <div class="card-header">
+          <h2 class="card-title">Active Alerts</h2>
+          <button class="btn btn-sm btn-ghost" id="clearAlertsBtn">Clear All</button>
+        </div>
+        <div class="alerts-list" id="alertsList"></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Create Custom Alert</h2>
+        </div>
+        <form class="custom-alert-form" id="customAlertForm">
+          <div class="form-group">
+            <label for="alertType">Alert Type</label>
+            <select id="alertType">
+              <option value="CROWD_SPIKE">CROWD_SPIKE</option>
+              <option value="QUEUE_OVERFLOW">QUEUE_OVERFLOW</option>
+              <option value="NETWORK_CONGESTION">NETWORK_CONGESTION</option>
+              <option value="EMERGENCY_ALERT">EMERGENCY_ALERT</option>
+              <option value="CUSTOM">CUSTOM</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="alertZone">Affected Zone</label>
+            <select id="alertZone">
+              <option value="Gate A">Gate A</option>
+              <option value="Gate B">Gate B</option>
+              <option value="Gate C">Gate C</option>
+              <option value="Food Court">Food Court</option>
+              <option value="Washrooms">Washrooms</option>
+              <option value="Seating Area 1">Seating Area 1</option>
+              <option value="Seating Area 2">Seating Area 2</option>
+              <option value="Parking">Parking</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="alertMessage">Message</label>
+            <input type="text" id="alertMessage" placeholder="Describe the alert..." />
+          </div>
+          <div class="form-group">
+            <label for="alertSeverity">Severity</label>
+            <select id="alertSeverity">
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+              <option value="critical">Critical</option>
+            </select>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-danger">🔔 Trigger Alert</button>
+            <button type="button" class="btn btn-secondary" id="broadcastBtn">📢 Broadcast to Users</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="panel-grid three-col mt-16">
+      <div class="card action-card" id="sendBroadcast">
+        <div class="action-icon">📢</div>
+        <h3>Send Broadcast</h3>
+        <p>Push notification to all attendees</p>
+        <button class="btn btn-primary btn-full" onclick="window.adminActions.broadcast()">Send Now</button>
+      </div>
+      <div class="card action-card" id="suggestRoutes">
+        <div class="action-icon">🗺️</div>
+        <h3>Suggest Alternate Routes</h3>
+        <p>Auto-route users away from congested zones</p>
+        <button class="btn btn-primary btn-full" onclick="window.adminActions.suggestRoutes()">Activate</button>
+      </div>
+      <div class="card action-card" id="highlightZones">
+        <div class="action-icon">🎯</div>
+        <h3>Highlight Affected Zones</h3>
+        <p>Mark danger zones on user maps</p>
+        <button class="btn btn-warning btn-full" onclick="window.adminActions.highlightZones()">Highlight</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PANEL: AI INSIGHTS ── -->
+  <section class="panel" id="panel-ai">
+    <div class="panel-grid two-col">
+      <div class="card ai-feed-card">
+        <div class="card-header">
+          <h2 class="card-title">AI Decision Feed</h2>
+          <span class="live-pill">● LIVE</span>
+        </div>
+        <div class="ai-decision-feed" id="aiDecisionFeed"></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">AI Confidence Scores</h2>
+        </div>
+        <canvas id="aiConfidenceChart" height="250"></canvas>
+      </div>
+    </div>
+    <div class="card mt-16">
+      <div class="card-header">
+        <h2 class="card-title">Prediction Horizon (Next 10 min)</h2>
+      </div>
+      <canvas id="predictionChart" height="180"></canvas>
+    </div>
+  </section>
+
+  <!-- ── PANEL: CONTROL ACTIONS ── -->
+  <section class="panel" id="panel-control">
+    <div class="control-grid">
+      <!-- Gate Controls -->
+      <div class="card">
+        <div class="card-header"><h2 class="card-title">Gate Control</h2></div>
+        <div class="gate-controls" id="gateControls"></div>
+      </div>
+
+      <!-- Zone Restriction -->
+      <div class="card">
+        <div class="card-header"><h2 class="card-title">Zone Restrictions</h2></div>
+        <div class="zone-controls" id="zoneControls"></div>
+      </div>
+
+      <!-- Navigation Override -->
+      <div class="card">
+        <div class="card-header"><h2 class="card-title">Navigation Override</h2></div>
+        <div class="nav-override" id="navOverride">
+          <div class="form-group">
+            <label>Redirect From</label>
+            <select id="redirectFrom">
+              <option>Gate A</option><option>Gate B</option><option>Food Court</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Redirect To</label>
+            <select id="redirectTo">
+              <option>Gate C</option><option>Gate B</option><option>Seating Area 2</option>
+            </select>
+          </div>
+          <button class="btn btn-primary btn-full mt-8" onclick="window.adminActions.redirectCrowd()">🔀 Redirect Crowd</button>
+        </div>
+      </div>
+
+      <!-- Emergency -->
+      <div class="card emergency-card">
+        <div class="card-header"><h2 class="card-title">Emergency Controls</h2></div>
+        <div class="emergency-controls">
+          <button class="btn btn-danger btn-xl" id="emergencyModeBtn" onclick="window.adminActions.emergencyMode()">
+            🚨 ACTIVATE EMERGENCY MODE
+          </button>
+          <button class="btn btn-warning btn-xl" id="evacuationBtn" onclick="window.adminActions.triggerEvacuation()">
+            🚪 TRIGGER EVACUATION
+          </button>
+          <button class="btn btn-success btn-xl" id="optimizeBtn" onclick="window.adminActions.optimizeFlow()">
+            ✅ OPTIMIZE FLOW
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Log -->
+    <div class="card mt-16">
+      <div class="card-header"><h2 class="card-title">Control Action Log</h2></div>
+      <div class="action-log-list" id="actionLogList"></div>
+    </div>
+  </section>
+
+  <!-- ── PANEL: DRONE & CAMERA ── -->
+  <section class="panel" id="panel-drone">
+    <div class="panel-grid two-col">
+      <div class="card drone-feed-card">
+        <div class="card-header">
+          <h2 class="card-title">Drone Feed — Live View</h2>
+          <span class="live-pill">● LIVE</span>
+        </div>
+        <div class="drone-viewport" id="droneFeed">
+          <canvas id="droneCanvas" width="480" height="300"></canvas>
+          <div class="drone-hud">
+            <div class="hud-item">ALT: <span id="hudAlt">42m</span></div>
+            <div class="hud-item">BAT: <span id="hudBat">87%</span></div>
+            <div class="hud-item">ZONE: <span id="hudZone">Gate A</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h2 class="card-title">Camera Zones</h2></div>
+        <div class="camera-grid" id="cameraGrid"></div>
+      </div>
+    </div>
+
+    <div class="panel-grid two-col mt-16">
+      <div class="card">
+        <div class="card-header"><h2 class="card-title">Blind Spot Analysis</h2></div>
+        <div class="blind-spots" id="blindSpots"></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h2 class="card-title">High-Risk Movement Areas</h2></div>
+        <div class="risk-areas" id="riskAreas"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PANEL: DIGITAL TWIN ── -->
+  <section class="panel" id="panel-twin">
+    <div class="twin-toggle-bar">
+      <button class="twin-btn active" id="twinRealBtn" onclick="window.twinMode='real'; updateTwin()">◉ Real-Time View</button>
+      <button class="twin-btn" id="twinPredBtn" onclick="window.twinMode='predicted'; updateTwin()">⏩ 5 Min Prediction</button>
+      <button class="twin-btn" id="twinPred10Btn" onclick="window.twinMode='predicted10'; updateTwin()">⏭ 10 Min Prediction</button>
+    </div>
+
+    <div class="panel-grid two-col mt-16">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title" id="twinMapTitle">Real-Time Twin View</h2>
+          <span class="live-pill" id="twinLivePill">● LIVE</span>
+        </div>
+        <div class="stadium-map large twin-map" id="twinMap"></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h2 class="card-title">Impact Simulation</h2></div>
+        <canvas id="twinImpactChart" height="250"></canvas>
+      </div>
+    </div>
+
+    <div class="card mt-16">
+      <div class="card-header"><h2 class="card-title">Expected Crowd Movement</h2></div>
+      <canvas id="twinMovementChart" height="160"></canvas>
+    </div>
+  </section>
+
+  <!-- ── PANEL: TIMELINE ── -->
+  <section class="panel" id="panel-timeline">
+    <div class="card full-height-card">
+      <div class="card-header">
+        <h2 class="card-title">System Events Timeline</h2>
+        <div class="timeline-filters">
+          <button class="filter-btn active" data-filter="all">All</button>
+          <button class="filter-btn" data-filter="alert">Alerts</button>
+          <button class="filter-btn" data-filter="ai">AI Actions</button>
+          <button class="filter-btn" data-filter="admin">Admin</button>
+        </div>
+      </div>
+      <div class="timeline" id="timeline"></div>
+    </div>
+  </section>
+
+  <!-- ── PANEL: PERFORMANCE ── -->
+  <section class="panel" id="panel-metrics">
+    <div class="panel-grid four-col">
+      <div class="metric-ring-card">
+        <canvas id="ringWait" width="120" height="120"></canvas>
+        <div class="ring-label">Avg Wait</div>
+        <div class="ring-val" id="ring-wait-val">4.2 min</div>
+      </div>
+      <div class="metric-ring-card">
+        <canvas id="ringCongestion" width="120" height="120"></canvas>
+        <div class="ring-label">Congestion Index</div>
+        <div class="ring-val" id="ring-congestion-val">68</div>
+      </div>
+      <div class="metric-ring-card">
+        <canvas id="ringResponse" width="120" height="120"></canvas>
+        <div class="ring-label">Sys Response</div>
+        <div class="ring-val" id="ring-response-val">142 ms</div>
+      </div>
+      <div class="metric-ring-card">
+        <canvas id="ringSatisfaction" width="120" height="120"></canvas>
+        <div class="ring-label">Satisfaction</div>
+        <div class="ring-val" id="ring-satisfaction-val">87%</div>
+      </div>
+    </div>
+    <div class="panel-grid two-col mt-16">
+      <div class="card">
+        <div class="card-header"><h2 class="card-title">KPI Trends (Last 30 min)</h2></div>
+        <canvas id="kpiTrendChart" height="200"></canvas>
+      </div>
+      <div class="card">
+        <div class="card-header"><h2 class="card-title">System Resource Usage</h2></div>
+        <canvas id="resourceChart" height="200"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PANEL: STRESS TEST ── -->
+  <section class="panel" id="panel-stress">
+    <div class="panel-grid three-col">
+      <div class="card stress-scenario-card" id="scen-halftime">
+        <div class="scenario-icon">🏟️</div>
+        <h3>Halftime Rush</h3>
+        <p>Simulates sudden surge of 15,000+ fans to food/washroom zones</p>
+        <div class="scenario-status" id="status-halftime">READY</div>
+        <button class="btn btn-warning btn-full mt-8" onclick="window.stressTest.run('halftime')">▶ Run Simulation</button>
+      </div>
+      <div class="card stress-scenario-card" id="scen-matchend">
+        <div class="scenario-icon">🚶</div>
+        <h3>Match End Exit</h3>
+        <p>Simulates 45,000 fans exiting all gates simultaneously</p>
+        <div class="scenario-status" id="status-matchend">READY</div>
+        <button class="btn btn-warning btn-full mt-8" onclick="window.stressTest.run('matchend')">▶ Run Simulation</button>
+      </div>
+      <div class="card stress-scenario-card" id="scen-emergency">
+        <div class="scenario-icon">🚨</div>
+        <h3>Emergency Evacuation</h3>
+        <p>Simulates critical emergency requiring full stadium evacuation</p>
+        <div class="scenario-status" id="status-emergency">READY</div>
+        <button class="btn btn-danger btn-full mt-8" onclick="window.stressTest.run('emergency')">▶ Run Simulation</button>
+      </div>
+    </div>
+    <div class="card mt-16">
+      <div class="card-header">
+        <h2 class="card-title">Live Stress Test Monitor</h2>
+        <button class="btn btn-ghost btn-sm" onclick="window.stressTest.stop()">■ Stop</button>
+      </div>
+      <canvas id="stressChart" height="220"></canvas>
+      <div class="stress-log" id="stressLog"></div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ════════════════════ TOAST CONTAINER ════════════════════ -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ════════════════════ MODAL ════════════════════ -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle">Notification</h3>
+      <button class="modal-close" id="modalClose">×</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="modalCancel">Cancel</button>
+      <button class="btn btn-primary" id="modalConfirm">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script src="dashboard.js"></script>
+</body>
+</html>
