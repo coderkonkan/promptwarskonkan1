@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVES - User AI Assistant</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+</head>
+<body style="align-items: center; justify-content: center;">
+
+    <div class="mobile-frame">
+        <div class="mobile-header">
+            <h1 class="gradient-text">Welcome, Fan</h1>
+            <p class="subtitle">AI Assistant Active</p>
+        </div>
+        
+        <div class="mobile-content" id="appContent">
+            
+            <div style="margin-bottom: 24px;">
+                <h3 style="font-size: 1rem; margin-bottom: 12px; color: var(--text-secondary);">Personalized Insights</h3>
+                <div id="ai-alerts-container">
+                    <div style="color: #666; font-size: 0.9rem;">Connecting to AI Engine...</div>
+                </div>
+            </div>
+
+            <div>
+                <h3 style="font-size: 1rem; margin-bottom: 12px; color: var(--text-secondary);">Live Venue Map (AI Predicted)</h3>
+                <div class="glass-panel" style="padding: 10px;" id="zone-list-container">
+                    <!-- Zone list populated by JS -->
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

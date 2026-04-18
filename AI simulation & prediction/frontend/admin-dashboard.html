@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVES - Admin AI Simulator</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+    <div class="admin-layout">
+        <header style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1 class="gradient-text">SVES AI Command Center</h1>
+                <p class="subtitle">Real-time Simulation & Predictive Insights Engine</p>
+            </div>
+            <div class="glass-panel" style="padding: 10px 20px; display: flex; align-items: center; gap: 15px;">
+                <div>
+                    <span style="font-size: 0.8rem; color: var(--text-secondary);">AI Accuracy Confidence</span>
+                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--secondary-accent);" id="confidence-val">--%</div>
+                </div>
+                <div>
+                    <span style="font-size: 0.8rem; color: var(--text-secondary);">Match Phase</span>
+                    <div style="font-size: 1rem; font-weight: 600; text-transform: uppercase;" id="phase-val">--</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="admin-grid">
+            
+            <!-- Column 1: Event Triggers & Digital Twin Compare -->
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+                <div class="glass-panel">
+                    <h3 style="margin-bottom: 16px;">Trigger Event Simulation</h3>
+                    <button class="event-btn" onclick="triggerEvent('MATCH_START')">▶ Match Start</button>
+                    <button class="event-btn" onclick="triggerEvent('GOAL_SCORED')">⚽ Goal Scored</button>
+                    <button class="event-btn" onclick="triggerEvent('HALFTIME')">⏱ Halftime Rush</button>
+                    <button class="event-btn" onclick="triggerEvent('MATCH_END')">🏁 Match End Exiting</button>
+                </div>
+                
+                <div class="glass-panel" style="flex-grow: 1;">
+                    <h3 style="margin-bottom: 16px;">Queue Wait Prediction</h3>
+                    <div class="chart-container">
+                        <canvas id="queueChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Column 2: Predictive Time Series (Crowd Density) -->
+            <div class="glass-panel" style="grid-column: span 1;">
+                <h3 style="margin-bottom: 16px;">Live Twin vs Predicted (10 min ahead)</h3>
+                <div class="chart-container" style="height: 400px;">
+                    <canvas id="twinChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Column 3: AI Recommendations -->
+            <div class="glass-panel" style="overflow-y: auto;">
+                <h3 style="margin-bottom: 16px; color: var(--warning-color);">AI Action Recommendation Feed</h3>
+                <div id="decision-feed">
+                    <div style="color: #666; font-size: 0.9rem;">Waiting for AI engine...</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>
