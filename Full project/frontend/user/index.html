@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SVES | Unified User Journey</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <style>
+        :root {
+            --bg: #0b0c10; --surface: #1f2833; 
+            --accent: #66fcf1; --primary: #45a29e;
+            --danger: #ff4b4b; --warning: #fca311;
+        }
+        * { box-sizing: border-box; margin: 0; font-family: 'Outfit', sans-serif; }
+        body { background: #000; color: #fff; display: flex; justify-content: center; height: 100vh; align-items: center;}
+        
+        .mobile-shell { width: 100%; max-width: 400px; height: 100%; max-height: 850px; background: var(--bg); display: flex; flex-direction: column; position: relative; border: 8px solid #222; border-radius: 36px; overflow: hidden; box-shadow: 0 0 40px rgba(102, 252, 241, 0.15);}
+        @media(max-width: 450px) { .mobile-shell { border: none; border-radius: 0; height: 100%; } }
+
+        .app-header { padding: 40px 20px 20px; background: var(--surface); border-bottom: 1px solid rgba(102, 252, 241, 0.2); }
+        .greeting { font-size: 1.5rem; font-weight: 700; color: var(--accent); }
+        .sys-badge { font-size: 0.8rem; padding: 4px 10px; border-radius: 12px; background: rgba(0, 255, 0, 0.1); color: #0f0; margin-top: 5px; display: inline-block; }
+        .sys-badge.emergency { background: rgba(255, 0, 0, 0.2); color: var(--danger); animation: blink 1s infinite;}
+        @keyframes blink { 50% { opacity: 0.5; } }
+
+        .main-view { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
+
+        /* Unified AI Feed */
+        .ai-banner { background: linear-gradient(135deg, rgba(69, 162, 158, 0.2), rgba(102, 252, 241, 0.05)); border: 1px solid var(--accent); border-radius: 12px; padding: 15px; }
+        .ai-banner.danger { background: rgba(255, 75, 75, 0.2); border-color: var(--danger); }
+        
+        .ai-header { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; color: var(--accent); }
+        .ai-banner.danger .ai-header { color: var(--danger); }
+        
+        .ai-content { font-size: 0.95rem; line-height: 1.4; color: #ccc; }
+
+        /* Navigation Map Sync */
+        .map-view { width: 100%; height: 250px; background: #111; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 10px;}
+        .map-view svg { position: absolute; width:100%; height:100%; opacity: 0.3; }
+        .route-eta { background: rgba(0,0,0,0.8); z-index: 10; padding: 10px 20px; border-radius: 20px; font-weight: 600; border: 1px solid var(--accent); text-align: center;}
+        
+        /* Queue Sync Module */
+        .queue-box { background: var(--surface); padding: 15px; border-radius: 12px; }
+        .queue-box h3 { font-size: 1rem; margin-bottom: 10px; }
+        .queue-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem;}
+
+    </style>
+</head>
+<body>
+
+    <div class="mobile-shell">
+        <header class="app-header">
+            <div class="greeting">Hey, Fan</div>
+            <div class="sys-badge" id="sys-mode-badge">System Live — Connected</div>
+        </header>
+
+        <main class="main-view">
+            
+            <!-- Context Aware AI Banner from Core Engine -->
+            <div class="ai-banner" id="user-alert-box">
+                <div class="ai-header" id="alert-header">✨ AI Smart Suggestion</div>
+                <div class="ai-content" id="alert-text">Analyzing your best routes for the match...</div>
+            </div>
+
+            <!-- Linked Navigation Engine -->
+            <div class="map-view">
+                <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="#45a29e" stroke-width="2" stroke-dasharray="5,5"/></svg>
+                <div class="route-eta" id="nav-instruction">
+                    Current Route: Section 1<br>
+                    <span style="font-size:0.8rem; color:var(--accent);">ETA: 4 mins • Smooth</span>
+                </div>
+            </div>
+
+            <!-- Linked Queue Engine -->
+            <div class="queue-box">
+                <h3>Live Queue Predictions</h3>
+                <div id="queue-list">
+                    <div class="queue-item"><span>Burger Stall</span> <span>-- min</span></div>
+                </div>
+            </div>
+
+            <!-- Unified Parking/Exit Status -->
+            <div class="queue-box">
+                <h3>Transit Logistics</h3>
+                <div class="queue-item"><span>Parking Capacity</span> <span id="park-status" style="color:var(--success)">--%</span></div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        const socket = io('http://localhost:4000');
+
+        socket.on('SVES_UPDATE', (data) => {
+            const state = data.state;
+            const pred = data.predictions;
+
+            // Health badge
+            const badge = document.getElementById('sys-mode-badge');
+            if (state.systemMode === 'EMERGENCY') {
+                badge.className = 'sys-badge emergency';
+                badge.innerText = '🚨 EVACUATION MODE';
+            } else {
+                badge.className = 'sys-badge';
+                badge.innerText = `● Match Phase: ${state.matchPhase}`;
+            }
+
+            // Route ETA Updates based on Core Backend Density
+            const navInstruction = document.getElementById('nav-instruction');
+            const alertBox = document.getElementById('user-alert-box');
+            const alertHeader = document.getElementById('alert-header');
+            const alertText = document.getElementById('alert-text');
+
+            if (state.systemMode === 'EMERGENCY') {
+                navInstruction.innerHTML = `EVACUATE IMMEDIATELY<br><span style="font-size:0.8rem; color:var(--danger)">Routing away from Gates, follow Staff</span>`;
+                navInstruction.style.borderColor = 'var(--danger)';
+                
+                alertBox.className = 'ai-banner danger';
+                alertHeader.innerText = '🚨 CRITICAL ALERT';
+                alertText.innerText = 'Emergency protocol activated. Seek the nearest safe exit away from the main concourse.';
+            } else if (state.matchPhase === 'HALFTIME') {
+                navInstruction.innerHTML = `Rerrouting to Washroom<br><span style="font-size:0.8rem; color:var(--warning)">Heavy Concourse Traffic</span>`;
+                navInstruction.style.borderColor = 'var(--warning)';
+
+                alertBox.className = 'ai-banner danger';
+                alertHeader.innerText = '⚠️ Crowd Surge Predictive Warning';
+                alertText.innerText = 'Artificial bottlenecks forming near Food Court. Wait 5 minutes to avoid a 15-minute queue delay.';
+            } else if (state.matchPhase === 'MATCH_END') {
+                navInstruction.innerHTML = `Find Exit Route<br><span style="font-size:0.8rem; color:var(--accent)">ETA: 8 mins • Gate C</span>`;
+                navInstruction.style.borderColor = 'var(--accent)';
+
+                alertBox.className = 'ai-banner';
+                alertHeader.innerText = '✨ AI Smart Suggestion';
+                alertText.innerText = 'Wait in your seat for 10 minutes to let the exit crowd clear out. Earn 50 points!';
+            } else {
+                navInstruction.innerHTML = `Current Route: Section 1<br><span style="font-size:0.8rem; color:var(--accent);">ETA: 3 mins • Clear</span>`;
+                navInstruction.style.borderColor = 'var(--accent)';
+                
+                // Show generalized backend alerts via User Interface
+                if (state.recentAlerts.length > 0) {
+                     alertText.innerText = state.recentAlerts[0].msg;
+                     alertBox.className = state.recentAlerts[0].level === 'urgent' ? 'ai-banner danger' : 'ai-banner';
+                }
+            }
+
+            // Sync Queues
+            let queueHtml = '';
+            for (const [stall, wait] of Object.entries(state.queueWaits)) {
+                let color = wait > 8 ? 'var(--danger)' : wait > 4 ? 'var(--warning)' : 'var(--success)';
+                queueHtml += `<div class="queue-item"><span>${stall}</span> <span style="color:${color}; font-weight:700;">${wait} min</span></div>`;
+            }
+            document.getElementById('queue-list').innerHTML = queueHtml;
+
+            // Sync Parking
+            document.getElementById('park-status').innerText = state.parkingCapacity + '%';
+        });
+    </script>
+
+</body>
+</html>
