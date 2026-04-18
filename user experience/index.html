@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Smart Venue Companion</title>
+    <!-- Use Outfit font from previous iterations for brand consistency -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dark-mode" id="appBody">
+
+    <!-- Simulator wrapper (to look like a phone on desktop views) -->
+    <div class="mobile-simulator">
+        
+        <!-- App Header -->
+        <header class="app-header">
+            <div class="header-top">
+                <div class="user-profile">
+                    <div class="avatar">JF</div>
+                    <div>
+                        <div class="greeting">Hey, John!</div>
+                        <div class="points-badge" id="gamification-score">⭐ 450 pts</div>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="icon-btn" onclick="toggleAccessibility()" title="Large Text Mode">Aa</button>
+                    <!-- Simulated User Journey toggles (for testing) -->
+                    <select id="journeyPhase" onchange="simulateJourneyPhase(this.value)">
+                        <option value="entry">Entry/Gate</option>
+                        <option value="match">Match Live</option>
+                        <option value="halftime">Halftime</option>
+                        <option value="exit">Match Exit</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Real-Time Alerts Banner (Hidden by default) -->
+            <div id="urgent-alert" class="urgent-alert hidden">
+                <span class="pulse-dot"></span>
+                <p id="urgent-alert-text">Surge near Gate 2. Avoid.</p>
+                <button class="close-alert" onclick="closeAlert()">×</button>
+            </div>
+        </header>
+
+        <!-- VIEW 1: HOME (SMART DASHBOARD) -->
+        <main class="view-panel active-view" id="view-home">
+            <div class="status-card live-status">
+                <div class="status-dot"></div>
+                <span>SYSTEM LIVE — Crowd Density: <strong id="crowd-level">Low</strong></span>
+            </div>
+
+            <!-- Dynamic Suggestions / Personalized Feed -->
+            <h3 class="section-title">For You</h3>
+            
+            <div class="suggestion-feed" id="suggestion-feed">
+                <!-- Javascript will inject context-aware cards here -->
+            </div>
+
+            <h3 class="section-title mt-20">Live Queue Wait Times</h3>
+            <div class="venue-stats scroll-x">
+                <div class="stat-pill">Burger Stall: <strong style="color:var(--success-color)">3 min</strong></div>
+                <div class="stat-pill">Merch Stand: <strong style="color:var(--warning-color)">12 min</strong></div>
+                <div class="stat-pill">Washroom North: <strong style="color:var(--success-color)">1 min</strong></div>
+            </div>
+        </main>
+
+        <!-- VIEW 2: SMART NAVIGATION MAP -->
+        <main class="view-panel" id="view-map">
+            <div class="map-container">
+                <div class="map-overlay-ui">
+                    <div class="eta-pill" id="route-eta">ETA: 4 mins • Moderate Crowd</div>
+                </div>
+                <!-- Mock SVG Map Graphic -->
+                <svg viewBox="0 0 400 600" class="interactive-map">
+                    <rect x="50" y="50" width="300" height="500" rx="30" fill="var(--surface-color)" stroke="var(--glass-border)"/>
+                    <rect x="150" y="200" width="100" height="200" rx="10" fill="#2a3f3b" stroke="#45a29e"/> <!-- Field -->
+                    <!-- Glowing Route Layer -->
+                    <path d="M 80,100 C 120,300 280,300 150,500" class="routing-path route-animate" fill="none" stroke="var(--primary-accent)" stroke-width="4" stroke-linecap="round"/>
+                    
+                    <circle cx="80" cy="100" r="8" fill="var(--primary-accent)" class="pulse"/>
+                    <circle cx="150" cy="500" r="8" fill="#fff"/>
+                </svg>
+            </div>
+
+            <div class="quick-nav-actions">
+                <button class="nav-btn primary" onclick="startRoute('seat')">📍 Go to Seat</button>
+                <button class="nav-btn" onclick="startRoute('food')">🍔 Find Food</button>
+                <button class="nav-btn outline" onclick="startRoute('exit')">🚪 Find Exit</button>
+            </div>
+
+            <!-- Floating Action Panel -->
+            <div class="fab-group">
+                <button class="fab" title="Medical">⚕️</button>
+                <button class="fab" title="Voice Nav">🎙️</button>
+            </div>
+        </main>
+
+        <!-- VIEW 3: SOCIAL & GROUP -->
+        <main class="view-panel" id="view-social">
+            <h3 class="section-title">Find My Friends</h3>
+            <div class="friend-list">
+                <div class="friend-card">
+                    <div class="avatar pink">AL</div>
+                    <div class="friend-info">
+                        <h4>Alex M.</h4>
+                        <p>At Gate A (0.2 mi away)</p>
+                    </div>
+                    <button class="btn-sm">Navigate to them</button>
+                </div>
+                <div class="friend-card">
+                    <div class="avatar blue">SB</div>
+                    <div class="friend-info">
+                        <h4>Sarah B.</h4>
+                        <p>Seating Sec 4</p>
+                    </div>
+                    <button class="btn-sm">Ping</button>
+                </div>
+            </div>
+
+            <div class="gamification-banner mt-20">
+                <h3>🏆 450 Points Earned</h3>
+                <p>You took 3 less-crowded routes today! Enjoy 10% off food orders.</p>
+                <div class="progress-bar"><div class="progress" style="width: 70%"></div></div>
+                <div style="text-align:right; font-size: 0.8rem; margin-top:5px;">50 pts to VIP Lane</div>
+            </div>
+        </main>
+
+        <!-- VIEW 4: AI ASSISTANT -->
+        <main class="view-panel" id="view-ai">
+            <div class="chat-container">
+                <div class="chat-message bot">
+                    <div class="msg-bubble">Hi John! I'm your venue AI companion. Ask me anything or let me guide you.</div>
+                </div>
+                <div class="chat-message bot" id="ai-context-msg">
+                    <div class="msg-bubble hint">💡 Tip: Avoid Gate A right now, it's heavily congested. Best entry is Gate C.</div>
+                </div>
+            </div>
+            
+            <div class="chat-input-area">
+                <div class="chip-container scroll-x">
+                    <button class="chip" onclick="sendMockAiMsg('Where is the nearest washroom?')">Nearest washroom?</button>
+                    <button class="chip" onclick="sendMockAiMsg('Fastest exit route?')">Fastest exit?</button>
+                </div>
+                <div class="input-box">
+                    <input type="text" placeholder="Ask AI Assistant..." disabled>
+                    <button class="send-btn">➤</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button class="tab-btn active" onclick="switchView('home', this)">
+                <span class="icon">⬡</span>
+                <span class="label">Home</span>
+            </button>
+            <button class="tab-btn" onclick="switchView('map', this)">
+                <span class="icon">📍</span>
+                <span class="label">Navigate</span>
+            </button>
+            <button class="tab-btn" onclick="switchView('social', this)">
+                <span class="icon">👥</span>
+                <span class="label">Social</span>
+            </button>
+            <button class="tab-btn ai-tab" onclick="switchView('ai', this)">
+                <span class="icon">✨</span>
+                <span class="label">AI Assist</span>
+            </button>
+        </nav>
+
+    </div>
+
+    <!-- Celebration Overlay for Gamification -->
+    <div class="celebration-overlay hidden" id="celebration">
+        <h2 style="font-size: 2.5rem; margin-bottom: 10px;">+50 Points!</h2>
+        <p>Smart choice! You avoided the crowded route.</p>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
