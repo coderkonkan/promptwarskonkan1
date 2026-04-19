@@ -1,21 +1,23 @@
-# Use official Node.js LTS image
-FROM node:18
+FROM node:18-alpine
 
 # Set working directory
-WORKDIR /app
+WORKDIR /usr/src/app
 
-# Copy package.json and package-lock.json
-COPY package*.json ./
-
-# Install dependencies
-RUN npm install
-
-# Copy all files
-COPY . .
-
-# Expose the port Cloud Run expects
+# Set environment variables
+ENV NODE_ENV=production
 ENV PORT=8080
+
+# Expose port
 EXPOSE 8080
 
-# Command to run the app
-CMD ["node", "index.js"]
+# First copy only package files to leverage Docker caching
+COPY package*.json ./
+
+# Install production dependencies only
+RUN npm ci --omit=dev
+
+# Copy the rest of the application code
+COPY . .
+
+# Start the application
+CMD ["node", "server.js"]
